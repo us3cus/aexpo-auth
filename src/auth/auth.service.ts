@@ -30,6 +30,8 @@ export class AuthService {
     const user = this.usersRepository.create({
       email: registerDto.email,
       password: hashedPassword,
+      firstName: registerDto.firstName,
+      lastName: registerDto.lastName,
     });
 
     await this.usersRepository.save(user);
@@ -62,7 +64,13 @@ export class AuthService {
 
     // TODO: Exchange code for access token using Shikimori API
     const accessToken = 'dummy_token';
-    const shikimoriUser = { id: '123', email: 'user@example.com' };
+    const shikimoriUser = { 
+      id: '123', 
+      email: 'user@example.com',
+      nickname: 'User',
+      name: 'John',
+      last_name: 'Doe'
+    };
 
     let user = await this.usersRepository.findOne({ 
       where: { shikimoriId: shikimoriUser.id } 
@@ -73,11 +81,15 @@ export class AuthService {
         email: shikimoriUser.email,
         shikimoriId: shikimoriUser.id,
         shikimoriAccessToken: accessToken,
+        firstName: shikimoriUser.name,
+        lastName: shikimoriUser.last_name,
         password: await bcrypt.hash(Math.random().toString(36), 10), // Generate random password
       });
       await this.usersRepository.save(user);
     } else {
       user.shikimoriAccessToken = accessToken;
+      user.firstName = shikimoriUser.name;
+      user.lastName = shikimoriUser.last_name;
       await this.usersRepository.save(user);
     }
 

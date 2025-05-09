@@ -13,7 +13,9 @@ curl -X POST http://localhost:5001/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
-    "password": "password123"
+    "password": "password123",
+    "firstName": "Иван",
+    "lastName": "Иванов"
   }'
 ```
 
@@ -21,7 +23,9 @@ curl -X POST http://localhost:5001/api/auth/register \
 ```json
 {
   "email": "user@example.com",
-  "password": "password123"
+  "password": "password123",
+  "firstName": "Иван",
+  "lastName": "Иванов"
 }
 ```
 
@@ -30,6 +34,8 @@ curl -X POST http://localhost:5001/api/auth/register \
 {
   "id": 1,
   "email": "user@example.com",
+  "firstName": "Иван",
+  "lastName": "Иванов",
   "createdAt": "2024-03-21T12:00:00.000Z",
   "updatedAt": "2024-03-21T12:00:00.000Z"
 }
@@ -37,7 +43,7 @@ curl -X POST http://localhost:5001/api/auth/register \
 
 #### Ошибки
 - `409 Conflict` - Пользователь с таким email уже существует
-- `400 Bad Request` - Невалидные данные (некорректный email или короткий пароль)
+- `400 Bad Request` - Невалидные данные (некорректный email, короткий пароль, короткое имя или фамилия)
 
 ### Вход в систему
 ```http
@@ -93,6 +99,8 @@ Authorization: Bearer <access_token>
 {
   "id": 1,
   "email": "user@example.com",
+  "firstName": "Иван",
+  "lastName": "Иванов",
   "createdAt": "2024-03-21T12:00:00.000Z",
   "updatedAt": "2024-03-21T12:00:00.000Z"
 }
@@ -160,4 +168,5 @@ Authorization: Bearer <access_token>
 
 ### Валидация
 - Email должен быть валидным адресом электронной почты
-- Пароль должен содержать минимум 6 символов 
+- Пароль должен содержать минимум 6 символов
+- Имя и фамилия должны содержать минимум 2 символа 
