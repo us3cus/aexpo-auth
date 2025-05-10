@@ -101,6 +101,7 @@ Authorization: Bearer <access_token>
   "email": "user@example.com",
   "firstName": "Иван",
   "lastName": "Иванов",
+  "avatarUrl": "http://localhost:3000/avatars/123e4567-e89b-12d3-a456-426614174000.jpg",
   "createdAt": "2024-03-21T12:00:00.000Z",
   "updatedAt": "2024-03-21T12:00:00.000Z"
 }
@@ -108,6 +109,42 @@ Authorization: Bearer <access_token>
 
 #### Ошибки
 - `401 Unauthorized` - Отсутствует или недействительный токен
+
+## Загрузка файлов
+
+### Загрузка аватара пользователя
+```http
+POST /api/upload/avatar
+```
+
+#### Пример curl запроса
+```bash
+curl -X POST http://localhost:5001/api/upload/avatar \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -F "file=@/path/to/avatar.jpg"
+```
+
+#### Заголовки
+```
+Authorization: Bearer <access_token>
+Content-Type: multipart/form-data
+```
+
+#### Параметры запроса
+- `file` - Файл изображения (jpg, jpeg, png, gif)
+
+#### Ответ
+```json
+{
+  "filename": "123e4567-e89b-12d3-a456-426614174000.jpg",
+  "url": "http://localhost:3000/avatars/123e4567-e89b-12d3-a456-426614174000.jpg"
+}
+```
+
+#### Ошибки
+- `401 Unauthorized` - Отсутствует или недействительный токен
+- `400 Bad Request` - Файл не загружен или имеет недопустимый формат
+- `413 Payload Too Large` - Размер файла превышает 5MB
 
 ## Интеграция с Shikimori
 

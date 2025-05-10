@@ -23,6 +23,9 @@ export class User {
   @Column({ nullable: true })
   shikimoriAccessToken?: string;
 
+  @Column({ nullable: true })
+  avatarUrl?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
