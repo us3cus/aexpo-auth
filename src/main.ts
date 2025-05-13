@@ -22,6 +22,9 @@ async function bootstrap() {
   // Настройка статических файлов
   app.useStaticAssets(join(__dirname, '..', 'public'), {
     prefix: '/',
+    setHeaders: (res) => {
+      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    },
   });
 
   await app.listen(process.env.PORT ?? 5001);

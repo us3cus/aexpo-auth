@@ -2,10 +2,18 @@ import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { existsSync, mkdirSync } from 'fs';
+
+const uploadDir = './public/avatars';
+
+// Создаем директорию, если она не существует
+if (!existsSync(uploadDir)) {
+  mkdirSync(uploadDir, { recursive: true });
+}
 
 export const uploadConfig: MulterOptions = {
   storage: diskStorage({
-    destination: './public/avatars',
+    destination: uploadDir,
     filename: (req, file, callback) => {
       const uniqueName = `${uuidv4()}${extname(file.originalname)}`;
       callback(null, uniqueName);
