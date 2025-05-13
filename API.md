@@ -110,41 +110,87 @@ Authorization: Bearer <access_token>
 #### Ошибки
 - `401 Unauthorized` - Отсутствует или недействительный токен
 
-## Загрузка файлов
-
-### Загрузка аватара пользователя
+### Обновление профиля пользователя
 ```http
-POST /api/upload/avatar
+PATCH /api/auth/profile
 ```
 
 #### Пример curl запроса
 ```bash
-curl -X POST http://localhost:5001/api/upload/avatar \
+curl -X PATCH http://localhost:5001/api/auth/profile \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
-  -F "file=@/path/to/avatar.jpg"
+  -H "Content-Type: application/json" \
+  -d '{
+    "password": "newpassword123",
+    "firstName": "Петр",
+    "lastName": "Петров",
+    "shikimoriId": "123456"
+  }'
 ```
 
 #### Заголовки
 ```
 Authorization: Bearer <access_token>
-Content-Type: multipart/form-data
+Content-Type: application/json
 ```
 
-#### Параметры запроса
-- `file` - Файл изображения (jpg, jpeg, png, gif)
+#### Тело запроса
+```json
+{
+  "password": "newpassword123",
+  "firstName": "Петр",
+  "lastName": "Петров",
+  "shikimoriId": "123456"
+}
+```
+
+Все поля являются опциональными. Обновляются только те поля, которые были переданы в запросе.
 
 #### Ответ
 ```json
 {
-  "filename": "123e4567-e89b-12d3-a456-426614174000.jpg",
-  "url": "http://localhost:3000/avatars/123e4567-e89b-12d3-a456-426614174000.jpg"
+  "id": 1,
+  "email": "user@example.com",
+  "firstName": "Петр",
+  "lastName": "Петров",
+  "shikimoriId": "123456",
+  "avatarUrl": "http://localhost:3000/avatars/123e4567-e89b-12d3-a456-426614174000.jpg",
+  "createdAt": "2024-03-21T12:00:00.000Z",
+  "updatedAt": "2024-03-21T12:00:00.000Z"
 }
 ```
 
 #### Ошибки
 - `401 Unauthorized` - Отсутствует или недействительный токен
-- `400 Bad Request` - Файл не загружен или имеет недопустимый формат
-- `413 Payload Too Large` - Размер файла превышает 5MB
+- `400 Bad Request` - Невалидные данные (короткий пароль, короткое имя или фамилия)
+- `404 Not Found` - Пользователь не найден
+
+## Загрузка файлов
+
+### Загрузка аватара
+
+**POST** `/api/upload/avatar`
+
+Загружает аватар пользователя и обновляет URL в профиле.
+
+**Заголовки:**
+- `Authorization: Bearer <token>` - JWT токен авторизации
+- `Content-Type: multipart/form-data`
+
+**Параметры:**
+- `file` - файл изображения (jpg, jpeg, png, gif)
+
+**Ответ:**
+```json
+{
+    "filename": "7b6f3bd9-e0a5-46d5-8dd9-e510e3946b8e.png",
+    "url": "http://localhost:3000/avatars/7b6f3bd9-e0a5-46d5-8dd9-e510e3946b8e.png"
+}
+```
+
+**Ошибки:**
+- `401 Unauthorized` - если токен не предоставлен или недействителен
+- `400 Bad Request` - если файл не предоставлен или имеет неверный формат
 
 ## Интеграция с Shikimori
 
