@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -94,5 +95,43 @@ export class AuthService {
     }
 
     return this.login(user);
+  }
+
+  async updateProfile(userId: number, updateProfileDto: UpdateProfileDto) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    if (updateProfileDto.password) {
+      const hashedPassword = await bcrypt.hash(updateProfileDto.password, 10);
+      user.password = hashedPassword;
+    }
+
+    if (updateProfileDto.firstName) {
+      user.firstName = updateProfileDto.firstName;
+    }
+
+    if (updateProfileDto.lastName) {
+      user.lastName = updateProfileDto.lastName;
+    }
+
+    if (updateProfileDto.shikimoriId) {
+      user.shikimoriId = updateProfileDto.shikimoriId;
+    }
+
+    const updatedUser = await this.usersRepository.save(user);
+    const { password, ...result } = updatedUser;
+    return result;
+  }
+
+  async updateAvatarUrl(userId: number, avatarUrl: string) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    user.avatarUrl = avatarUrl;
+    await this.usersRepository.save(user);
   }
 } 
