@@ -1,0 +1,99 @@
+name: Deploy to VPS (NestJS)
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: vps
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build NestJS project
+        run: npm run build
+      
+      - name: Verify build output
+        run: |
+          echo "Checking build output..."
+          ls -la dist || echo "No dist directory"
+          echo "Main entry point:"
+          ls -la dist/main.js 2>/dev/null || echo "No main.js found"
+      
+      - name: Create deployment archive
+        run: |
+          tar -czf deploy.tar.gz dist package.json package-lock.json ecosystem.config.js
+          echo "Archive created:"
+          tar -tzf deploy.tar.gz | head -20
+      
+      - name: Deploy to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ vars.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ vars.VPS_PORT || 22 }}
+          source: "deploy.tar.gz"
+          target: "/tmp/"
+          overwrite: true
+      
+      - name: Extract and restart application
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ vars.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ vars.VPS_PORT || 22 }}
+          script: |
+            echo "Preparing deployment directory..."
+            sudo mkdir -p /var/www/aexpo-auth
+            cd /var/www/aexpo-auth
+            
+            echo "Extracting files..."
+            sudo tar -xzf /tmp/deploy.tar.gz
+            sudo rm /tmp/deploy.tar.gz
+            
+            echo "Files extracted:"
+            ls -la /var/www/aexpo-auth/
+            
+            echo "Setting permissions..."
+            sudo chown -R $USER:$USER /var/www/aexpo-auth
+            
+            echo "Checking Node.js and PM2..."
+            node --version
+            npm --version
+            
+            echo "Installing production dependencies..."
+            npm ci --omit=dev
+            
+            echo "Installing/updating PM2..."
+            sudo npm install -g pm2
+            
+            echo "Stopping old process..."
+            pm2 stop aexpo-auth || true
+            pm2 delete aexpo-auth || true
+            
+            echo "Starting application with PM2..."
+            cd /var/www/aexpo-auth
+            pm2 start ecosystem.config.js
+            pm2 save
+            
+            echo "PM2 status:"
+            pm2 list
+            pm2 logs aexpo-auth --lines 50 --nostream
+            
+            echo "✅ Deployment completed!"
