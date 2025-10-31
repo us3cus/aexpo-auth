@@ -18,7 +18,7 @@ import { User } from './entities/user.entity';
       useFactory: async (configService: ConfigService) => {
         const secret = configService.get<string>('JWT_SECRET');
         const expiresIn = configService.get<string>('JWT_EXPIRES_IN');
-        
+
         return {
           secret,
           signOptions: expiresIn ? { expiresIn } : {}, // No expiration if not set

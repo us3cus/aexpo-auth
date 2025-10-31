@@ -101,11 +101,12 @@ Authorization: Bearer <access_token>
   "email": "user@example.com",
   "firstName": "Иван",
   "lastName": "Иванов",
-  "avatarUrl": "http://localhost:3000/avatars/123e4567-e89b-12d3-a456-426614174000.jpg",
   "createdAt": "2024-03-21T12:00:00.000Z",
   "updatedAt": "2024-03-21T12:00:00.000Z"
 }
 ```
+
+**Примечание:** Для получения аватара используйте эндпоинт `GET /api/v1/upload/avatar/:userId`. Аватары хранятся в базе данных в сжатом формате WebP.
 
 #### Ошибки
 - `401 Unauthorized` - Отсутствует или недействительный токен
@@ -151,11 +152,12 @@ Content-Type: application/json
   "email": "user@example.com",
   "firstName": "Петр",
   "lastName": "Петров",
-  "avatarUrl": "http://localhost:3000/avatars/123e4567-e89b-12d3-a456-426614174000.jpg",
   "createdAt": "2024-03-21T12:00:00.000Z",
   "updatedAt": "2024-03-21T12:00:00.000Z"
 }
 ```
+
+**Примечание:** Для работы с аватаром используйте эндпоинты `/api/v1/upload/avatar`.
 
 #### Ошибки
 - `401 Unauthorized` - Отсутствует или недействительный токен
@@ -168,26 +170,61 @@ Content-Type: application/json
 
 **POST** `/api/v1/upload/avatar`
 
-Загружает аватар пользователя и обновляет URL в профиле.
+Загружает аватар пользователя, сжимает его в формат WebP и сохраняет в базе данных PostgreSQL. Изображение автоматически сжимается до максимального размера 800x800 пикселей с сохранением пропорций.
 
 **Заголовки:**
 - `Authorization: Bearer <token>` - JWT токен авторизации
 - `Content-Type: multipart/form-data`
 
 **Параметры:**
-- `file` - файл изображения (jpg, jpeg, png, gif)
+- `file` - файл изображения (jpg, jpeg, png, gif, webp). Максимальный размер: 10MB
+
+**Пример curl запроса:**
+```bash
+curl -X POST http://localhost:5001/api/v1/upload/avatar \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -F "file=@/path/to/avatar.jpg"
+```
 
 **Ответ:**
 ```json
 {
-    "filename": "7b6f3bd9-e0a5-46d5-8dd9-e510e3946b8e.png",
-    "url": "http://localhost:3000/avatars/7b6f3bd9-e0a5-46d5-8dd9-e510e3946b8e.png"
+    "message": "Avatar uploaded successfully",
+    "size": 45678,
+    "originalSize": 123456,
+    "compressionRatio": "63.01"
 }
 ```
 
 **Ошибки:**
 - `401 Unauthorized` - если токен не предоставлен или недействителен
 - `400 Bad Request` - если файл не предоставлен или имеет неверный формат
+
+### Получение аватара пользователя
+
+**GET** `/api/v1/upload/avatar/:userId`
+
+Возвращает аватар пользователя в формате WebP из базы данных.
+
+**Параметры:**
+- `userId` - ID пользователя (число)
+
+**Пример curl запроса:**
+```bash
+curl -X GET http://localhost:5001/api/v1/upload/avatar/1 \
+  --output avatar.webp
+```
+
+**Ответ:**
+- Бинарные данные изображения в формате WebP
+- Заголовки:
+  - `Content-Type: image/webp`
+  - `Content-Length: <размер в байтах>`
+  - `Cache-Control: public, max-age=31536000`
+
+**Ошибки:**
+- `404 Not Found` - если аватар не найден для указанного пользователя
+- `400 Bad Request` - если userId не является числом
 
 ## Общие замечания
 

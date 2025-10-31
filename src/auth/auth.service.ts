@@ -96,4 +96,35 @@ export class AuthService {
     user.avatarUrl = avatarUrl;
     await this.usersRepository.save(user);
   }
+
+  async updateAvatar(userId: number, avatarData: Buffer, mimeType: string) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    user.avatarData = avatarData;
+    user.avatarMimeType = mimeType;
+    // Clear old avatarUrl since we're now using database storage
+    user.avatarUrl = undefined;
+    await this.usersRepository.save(user);
+  }
+
+  async getUserAvatar(
+    userId: number,
+  ): Promise<{ data: Buffer; mimeType: string } | null> {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'avatarData', 'avatarMimeType'],
+    });
+
+    if (!user || !user.avatarData) {
+      return null;
+    }
+
+    return {
+      data: user.avatarData,
+      mimeType: user.avatarMimeType || 'image/webp',
+    };
+  }
 }
