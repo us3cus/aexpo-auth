@@ -4,12 +4,12 @@
 
 ### Регистрация нового пользователя
 ```http
-POST /api/auth/register
+POST /api/v1/auth/register
 ```
 
 #### Пример curl запроса
 ```bash
-curl -X POST http://localhost:5001/api/auth/register \
+curl -X POST http://localhost:5001/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -47,12 +47,12 @@ curl -X POST http://localhost:5001/api/auth/register \
 
 ### Вход в систему
 ```http
-POST /api/auth/login
+POST /api/v1/auth/login
 ```
 
 #### Пример curl запроса
 ```bash
-curl -X POST http://localhost:5001/api/auth/login \
+curl -X POST http://localhost:5001/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -80,12 +80,12 @@ curl -X POST http://localhost:5001/api/auth/login \
 
 ### Получение профиля пользователя
 ```http
-GET /api/auth/profile
+GET /api/v1/auth/profile
 ```
 
 #### Пример curl запроса
 ```bash
-curl -X GET http://localhost:5001/api/auth/profile \
+curl -X GET http://localhost:5001/api/v1/auth/profile \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
@@ -112,19 +112,18 @@ Authorization: Bearer <access_token>
 
 ### Обновление профиля пользователя
 ```http
-PATCH /api/auth/profile
+PATCH /api/v1/auth/profile
 ```
 
 #### Пример curl запроса
 ```bash
-curl -X PATCH http://localhost:5001/api/auth/profile \
+curl -X PATCH http://localhost:5001/api/v1/auth/profile \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
   -H "Content-Type: application/json" \
   -d '{
     "password": "newpassword123",
     "firstName": "Петр",
-    "lastName": "Петров",
-    "shikimoriId": "123456"
+    "lastName": "Петров"
   }'
 ```
 
@@ -139,8 +138,7 @@ Content-Type: application/json
 {
   "password": "newpassword123",
   "firstName": "Петр",
-  "lastName": "Петров",
-  "shikimoriId": "123456"
+  "lastName": "Петров"
 }
 ```
 
@@ -153,7 +151,6 @@ Content-Type: application/json
   "email": "user@example.com",
   "firstName": "Петр",
   "lastName": "Петров",
-  "shikimoriId": "123456",
   "avatarUrl": "http://localhost:3000/avatars/123e4567-e89b-12d3-a456-426614174000.jpg",
   "createdAt": "2024-03-21T12:00:00.000Z",
   "updatedAt": "2024-03-21T12:00:00.000Z"
@@ -169,7 +166,7 @@ Content-Type: application/json
 
 ### Загрузка аватара
 
-**POST** `/api/upload/avatar`
+**POST** `/api/v1/upload/avatar`
 
 Загружает аватар пользователя и обновляет URL в профиле.
 
@@ -191,45 +188,6 @@ Content-Type: application/json
 **Ошибки:**
 - `401 Unauthorized` - если токен не предоставлен или недействителен
 - `400 Bad Request` - если файл не предоставлен или имеет неверный формат
-
-## Интеграция с Shikimori
-
-### Начало процесса авторизации через Shikimori
-```http
-GET /api/auth/shikimori/login
-```
-
-#### Пример curl запроса
-```bash
-curl -X GET http://localhost:5001/api/auth/shikimori/login
-```
-
-#### Ответ
-Перенаправление на страницу авторизации Shikimori
-
-### Callback от Shikimori
-```http
-GET /api/auth/shikimori/callback
-```
-
-#### Пример curl запроса
-```bash
-curl -X GET "http://localhost:5001/api/auth/shikimori/callback?code=YOUR_AUTH_CODE"
-```
-
-#### Параметры запроса
-- `code` - Код авторизации от Shikimori
-
-#### Ответ
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-#### Ошибки
-- `400 Bad Request` - Отсутствует код авторизации
-- `401 Unauthorized` - Ошибка при обмене кода на токен
 
 ## Общие замечания
 

@@ -7,13 +7,9 @@ import { uploadConfig } from './config/upload.config';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [
-    ConfigModule,
-    MulterModule.register(uploadConfig),
-    AuthModule,
-  ],
+  imports: [ConfigModule, MulterModule.register(uploadConfig), AuthModule],
   controllers: [UploadController],
   providers: [UploadService],
   exports: [UploadService],
 })
-export class UploadModule {} 
+export class UploadModule {}

@@ -1,4 +1,11 @@
-import { Controller, Get, Param, UseGuards, NotFoundException, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  NotFoundException,
+  Request,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UsersService } from './users.service';
 
@@ -25,4 +32,4 @@ export class UsersController {
     }
     return user;
   }
-} 
+}

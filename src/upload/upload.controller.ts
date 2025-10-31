@@ -1,4 +1,12 @@
-import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
 import { uploadConfig } from './config/upload.config';
@@ -21,7 +29,7 @@ export class UploadController {
     }
 
     const publicUrl = this.uploadService.getPublicUrl(file.filename);
-    
+
     // Обновляем URL аватара в базе данных
     await this.authService.updateAvatarUrl(req.user.id, publicUrl);
 
@@ -30,4 +38,4 @@ export class UploadController {
       url: publicUrl,
     };
   }
-} 
+}

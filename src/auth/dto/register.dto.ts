@@ -15,4 +15,4 @@ export class RegisterDto {
   @IsString()
   @MinLength(2)
   lastName: string;
-} 
+}
