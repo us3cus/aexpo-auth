@@ -226,6 +226,79 @@ curl -X GET http://localhost:5001/api/v1/upload/avatar/1 \
 - `404 Not Found` - если аватар не найден для указанного пользователя
 - `400 Bad Request` - если userId не является числом
 
+## Пользователи
+
+### Получение информации о текущем пользователе
+
+**GET** `/api/v1/users/me`
+
+Возвращает информацию о текущем авторизованном пользователе с URL для получения аватара.
+
+**Заголовки:**
+- `Authorization: Bearer <token>` - JWT токен авторизации
+
+**Пример curl запроса:**
+```bash
+curl -X GET http://localhost:5001/api/v1/users/me \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+**Ответ:**
+```json
+{
+  "id": 1,
+  "email": "user@example.com",
+  "firstName": "Иван",
+  "lastName": "Иванов",
+  "avatarUrl": "http://localhost:5001/api/v1/upload/avatar/1",
+  "avatarMimeType": "image/webp",
+  "createdAt": "2024-03-21T12:00:00.000Z",
+  "updatedAt": "2024-03-21T12:00:00.000Z"
+}
+```
+
+**Примечание:** `avatarUrl` будет `null` если пользователь не загрузил аватар.
+
+**Ошибки:**
+- `401 Unauthorized` - если токен не предоставлен или недействителен
+- `404 Not Found` - если пользователь не найден
+
+### Получение информации о пользователе по ID
+
+**GET** `/api/v1/users/:id`
+
+Возвращает публичную информацию о пользователе по его ID.
+
+**Заголовки:**
+- `Authorization: Bearer <token>` - JWT токен авторизации
+
+**Параметры пути:**
+- `id` - ID пользователя
+
+**Пример curl запроса:**
+```bash
+curl -X GET http://localhost:5001/api/v1/users/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+**Ответ:**
+```json
+{
+  "id": 1,
+  "email": "user@example.com",
+  "firstName": "Иван",
+  "lastName": "Иванов",
+  "avatarUrl": "http://localhost:5001/api/v1/upload/avatar/1",
+  "avatarMimeType": "image/webp",
+  "createdAt": "2024-03-21T12:00:00.000Z",
+  "updatedAt": "2024-03-21T12:00:00.000Z"
+}
+```
+
+**Ошибки:**
+- `401 Unauthorized` - если токен не предоставлен или недействителен
+- `404 Not Found` - если пользователь не найден
+
 ## Общие замечания
 
 ### Формат ошибок

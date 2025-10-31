@@ -42,16 +42,29 @@ export class AuthService {
 
     await this.usersRepository.save(user);
 
-    const { password, ...result } = user;
-    return result;
+    // Return user without password and avatarData
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      avatarUrl: null,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.usersRepository.findOne({ where: { email } });
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user;
-      return result;
+      // Return user without password and avatarData
+      return {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      };
     }
     return null;
   }
@@ -83,8 +96,31 @@ export class AuthService {
     }
 
     const updatedUser = await this.usersRepository.save(user);
-    const { password, ...result } = updatedUser;
-    return result;
+
+    // Check if user has avatar
+    const userWithAvatar = await this.usersRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'avatarData'],
+    });
+
+    const baseUrl = this.configService.get<string>(
+      'BASE_URL',
+      'http://localhost:5001',
+    );
+
+    const avatarUrl = userWithAvatar?.avatarData
+      ? `${baseUrl}/api/v1/upload/avatar/${userId}`
+      : null;
+
+    return {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      avatarUrl,
+      createdAt: updatedUser.createdAt,
+      updatedAt: updatedUser.updatedAt,
+    };
   }
 
   async updateAvatarUrl(userId: number, avatarUrl: string) {
