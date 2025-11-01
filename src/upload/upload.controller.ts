@@ -1,18 +1,12 @@
 import {
   Controller,
   Post,
-  Get,
-  Param,
-  ParseIntPipe,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
   UseGuards,
   Req,
-  Res,
-  NotFoundException,
 } from '@nestjs/common';
-import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
 import { uploadConfig } from './config/upload.config';
@@ -37,7 +31,7 @@ export class UploadController {
     // Compress the image
     const compressedImage = await this.uploadService.compressImage(file.buffer);
 
-    // Store in database with WebP mime type
+    // Upload to S3 and store URL in database
     await this.authService.updateAvatar(
       req.user.id as number,
       compressedImage,
@@ -53,25 +47,5 @@ export class UploadController {
         100
       ).toFixed(2),
     };
-  }
-
-  @Get('avatar/:userId')
-  async getAvatar(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Res() res: Response,
-  ) {
-    const avatar = await this.authService.getUserAvatar(userId);
-
-    if (!avatar) {
-      throw new NotFoundException('Avatar not found');
-    }
-
-    res.set({
-      'Content-Type': avatar.mimeType,
-      'Content-Length': avatar.data.length,
-      'Cache-Control': 'public, max-age=31536000',
-    });
-
-    res.send(avatar.data);
   }
 }

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../auth/entities/user.entity';
-import { ConfigService } from '@nestjs/config';
 
 export interface UserResponse {
   id: number;
@@ -20,7 +19,6 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    private configService: ConfigService,
   ) {}
 
   async findById(id: number): Promise<UserResponse | null> {
@@ -31,6 +29,7 @@ export class UsersService {
         'email',
         'firstName',
         'lastName',
+        'avatarUrl',
         'avatarMimeType',
         'createdAt',
         'updatedAt',
@@ -41,24 +40,15 @@ export class UsersService {
       return null;
     }
 
-    // Check if user has avatar by querying separately
-    const userWithAvatar = await this.usersRepository.findOne({
-      where: { id },
-      select: ['id', 'avatarData'],
-    });
-
-    const baseUrl = this.configService.get<string>(
-      'BASE_URL',
-      'http://localhost:5001',
-    );
-
-    const avatarUrl = userWithAvatar?.avatarData
-      ? `${baseUrl}/api/v1/upload/avatar/${id}`
-      : null;
-
     return {
-      ...user,
-      avatarUrl,
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      avatarUrl: user.avatarUrl || null,
+      avatarMimeType: user.avatarMimeType,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   }
 }

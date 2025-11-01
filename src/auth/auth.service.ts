@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { S3Service } from '../s3/s3.service';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +21,7 @@ export class AuthService {
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private s3Service: S3Service,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -70,7 +72,16 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { email: user.email, sub: user.id };
+    const fullUser = await this.usersRepository.findOne({
+      where: { id: user.id },
+      select: ['id', 'email', 'jwtVersion'],
+    });
+
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      jwtVersion: fullUser?.jwtVersion || 0,
+    };
     return {
       access_token: this.jwtService.sign(payload),
     };
@@ -82,9 +93,21 @@ export class AuthService {
       throw new NotFoundException('Пользователь не найден');
     }
 
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(
+      updateProfileDto.currentPassword,
+      user.password,
+    );
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Неверный текущий пароль');
+    }
+
+    let passwordChanged = false;
+
     if (updateProfileDto.password) {
       const hashedPassword = await bcrypt.hash(updateProfileDto.password, 10);
       user.password = hashedPassword;
+      passwordChanged = true;
     }
 
     if (updateProfileDto.firstName) {
@@ -95,38 +118,46 @@ export class AuthService {
       user.lastName = updateProfileDto.lastName;
     }
 
+    // Invalidate all JWT tokens if password changed
+    if (passwordChanged) {
+      user.jwtVersion = (user.jwtVersion || 0) + 1;
+    }
+
     const updatedUser = await this.usersRepository.save(user);
 
-    // Check if user has avatar
-    const userWithAvatar = await this.usersRepository.findOne({
-      where: { id: userId },
-      select: ['id', 'avatarData'],
-    });
-
-    const baseUrl = this.configService.get<string>(
-      'BASE_URL',
-      'http://localhost:5001',
-    );
-
-    const avatarUrl = userWithAvatar?.avatarData
-      ? `${baseUrl}/api/v1/upload/avatar/${userId}`
-      : null;
-
-    return {
+    const response: any = {
       id: updatedUser.id,
       email: updatedUser.email,
       firstName: updatedUser.firstName,
       lastName: updatedUser.lastName,
-      avatarUrl,
+      avatarUrl: updatedUser.avatarUrl,
       createdAt: updatedUser.createdAt,
       updatedAt: updatedUser.updatedAt,
     };
+
+    // If password changed, return new access token
+    if (passwordChanged) {
+      const payload = {
+        email: updatedUser.email,
+        sub: updatedUser.id,
+        jwtVersion: updatedUser.jwtVersion,
+      };
+      response.access_token = this.jwtService.sign(payload);
+      response.message = 'Пароль изменен. Все активные сессии завершены.';
+    }
+
+    return response;
   }
 
   async updateAvatarUrl(userId: number, avatarUrl: string) {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
+    }
+
+    // Удаляем старый аватар из S3, если он был
+    if (user.avatarUrl) {
+      await this.s3Service.deleteFile(user.avatarUrl);
     }
 
     user.avatarUrl = avatarUrl;
@@ -139,28 +170,20 @@ export class AuthService {
       throw new NotFoundException('Пользователь не найден');
     }
 
-    user.avatarData = avatarData;
-    user.avatarMimeType = mimeType;
-    // Clear old avatarUrl since we're now using database storage
-    user.avatarUrl = undefined;
-    await this.usersRepository.save(user);
-  }
-
-  async getUserAvatar(
-    userId: number,
-  ): Promise<{ data: Buffer; mimeType: string } | null> {
-    const user = await this.usersRepository.findOne({
-      where: { id: userId },
-      select: ['id', 'avatarData', 'avatarMimeType'],
-    });
-
-    if (!user || !user.avatarData) {
-      return null;
+    // Удаляем старый аватар из S3, если он был
+    if (user.avatarUrl) {
+      await this.s3Service.deleteFile(user.avatarUrl);
     }
 
-    return {
-      data: user.avatarData,
-      mimeType: user.avatarMimeType || 'image/webp',
-    };
+    // Загружаем новый аватар в S3
+    const avatarUrl = await this.s3Service.uploadFile(
+      avatarData,
+      mimeType,
+      'avatars',
+    );
+
+    user.avatarUrl = avatarUrl;
+    user.avatarMimeType = mimeType;
+    await this.usersRepository.save(user);
   }
 }

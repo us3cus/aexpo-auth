@@ -26,11 +26,11 @@ export class User {
   @Column({ nullable: true })
   avatarUrl?: string;
 
-  @Column({ type: 'bytea', nullable: true })
-  avatarData?: Buffer;
-
   @Column({ nullable: true })
   avatarMimeType?: string;
+
+  @Column({ default: 0 })
+  jwtVersion: number;
 
   @CreateDateColumn()
   createdAt: Date;

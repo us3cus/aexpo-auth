@@ -1,6 +1,15 @@
-import { IsString, IsOptional, MinLength, IsEmail } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  MinLength,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class UpdateProfileDto {
+  @IsNotEmpty({ message: 'Текущий пароль обязателен' })
+  @IsString()
+  currentPassword: string;
+
   @IsOptional()
   @IsString()
   @MinLength(6)
