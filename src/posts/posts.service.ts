@@ -47,7 +47,11 @@ export class PostsService {
       post.mediaMimeType = mimeType;
     }
 
-    return await this.postsRepository.save(post);
+    const savedPost = await this.postsRepository.save(post);
+    
+    // Загружаем пост с пользователем и удаляем пароль
+    const postWithUser = await this.findOne(savedPost.id);
+    return postWithUser!;
   }
 
   private async compressImage(buffer: Buffer): Promise<Buffer> {
@@ -58,25 +62,41 @@ export class PostsService {
   }
 
   async findAll(): Promise<Post[]> {
-    return await this.postsRepository.find({
+    const posts = await this.postsRepository.find({
       relations: ['user'],
       order: { createdAt: 'DESC' },
     });
+    
+    // Удаляем пароль из каждого поста
+    return posts.map(post => this.sanitizePost(post));
   }
 
   async findOne(id: number): Promise<Post | null> {
-    return await this.postsRepository.findOne({
+    const post = await this.postsRepository.findOne({
       where: { id },
       relations: ['user'],
     });
+    
+    return post ? this.sanitizePost(post) : null;
   }
 
   async findByUserId(userId: number): Promise<Post[]> {
-    return await this.postsRepository.find({
+    const posts = await this.postsRepository.find({
       where: { userId },
       relations: ['user'],
       order: { createdAt: 'DESC' },
     });
+    
+    // Удаляем пароль из каждого поста
+    return posts.map(post => this.sanitizePost(post));
+  }
+
+  private sanitizePost(post: Post): Post {
+    if (post.user) {
+      const { password, ...userWithoutPassword } = post.user as any;
+      post.user = userWithoutPassword as any;
+    }
+    return post;
   }
 
   async update(
@@ -131,7 +151,11 @@ export class PostsService {
       post.mediaMimeType = mimeType;
     }
 
-    return await this.postsRepository.save(post);
+    const savedPost = await this.postsRepository.save(post);
+    
+    // Загружаем пост с пользователем и удаляем пароль
+    const postWithUser = await this.findOne(savedPost.id);
+    return postWithUser!;
   }
 
   async remove(id: number, userId: number): Promise<void> {

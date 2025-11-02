@@ -59,16 +59,57 @@ $ npm run test:cov
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+This project uses **GitHub Actions** for automated deployment to VPS.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 📚 Documentation
+
+All project documentation is located in the **[documentation/](./documentation/)** folder.
+
+**Quick links:**
+- **[CI_CD_SETUP.md](./documentation/CI_CD_SETUP.md)** - Complete CI/CD overview and quick start guide
+- **[DEPLOYMENT.md](./documentation/DEPLOYMENT.md)** - Full deployment guide with VPS setup, troubleshooting, and PM2 commands
+- **[DEPLOYMENT_CHECKLIST.md](./documentation/DEPLOYMENT_CHECKLIST.md)** - Quick reference checklist for deployment
+- **[NGINX_SETUP.md](./documentation/NGINX_SETUP.md)** - Nginx configuration with SSL/HTTPS setup
+- **[ENV_VARIABLES.md](./documentation/ENV_VARIABLES.md)** - Environment variables reference
+- **[API.md](./documentation/API.md)** - Complete API documentation with examples
+- **[manage.sh](./manage.sh)** - Management script for VPS (status, logs, restart, backup)
+
+See **[documentation/README.md](./documentation/README.md)** for full documentation index.
+
+### Quick Start
+
+1. **Configure VPS** - See [DEPLOYMENT_CHECKLIST.md](./documentation/DEPLOYMENT_CHECKLIST.md)
+2. **Add GitHub Secrets/Variables**:
+   - Secrets: `VPS_HOST`, `VPS_PASSWORD`
+   - Variables: `VPS_USERNAME`, `VPS_PORT`
+   - Create environment: `vps`
+3. **Push to master** - Automatic deployment starts
+
+### Manual Deployment
+
+Go to **Actions** → **Deploy to VPS (NestJS)** → **Run workflow**
+
+### What happens during deployment:
+
+- ✅ Runs linter and tests
+- ✅ Builds the project (`npm run build`)
+- ✅ Packages `dist` + `node_modules`
+- ✅ Deploys to `/var/www/aexpo-auth` on VPS
+- ✅ Restarts via PM2
+- ✅ Health check on port 3000
+
+### Management on VPS
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+# Use management script
+chmod +x manage.sh
+./manage.sh
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+# Or PM2 commands directly
+pm2 status
+pm2 logs aexpo-auth
+pm2 restart aexpo-auth
+```
 
 ## Resources
 

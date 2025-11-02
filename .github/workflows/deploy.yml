@@ -1,0 +1,145 @@
+name: Deploy to VPS (NestJS)
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: vps
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: true
+      
+      - name: Run tests
+        run: npm run test
+        continue-on-error: true
+      
+      - name: Build project
+        run: npm run build
+      
+      - name: Verify build output
+        run: |
+          echo "Checking build output..."
+          ls -la dist || echo "No dist directory"
+          echo "Main entry point:"
+          ls -la dist/main.js 2>/dev/null || echo "No main.js found"
+      
+      - name: Create deployment archive
+        run: |
+          tar -czf deploy.tar.gz dist node_modules package.json package-lock.json ecosystem.config.js
+          echo "Archive created:"
+          tar -tzf deploy.tar.gz | head -30
+      
+      - name: Deploy to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ vars.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ vars.VPS_PORT || 22 }}
+          source: "deploy.tar.gz"
+          target: "/tmp/"
+          overwrite: true
+      
+      - name: Extract and restart application
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ vars.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ vars.VPS_PORT || 22 }}
+          script: |
+            echo "Preparing deployment directory..."
+            sudo mkdir -p /var/www/aexpo-auth
+            cd /var/www/aexpo-auth
+            
+            echo "Extracting files..."
+            sudo tar -xzf /tmp/deploy.tar.gz
+            sudo rm /tmp/deploy.tar.gz
+            
+            echo "Files extracted:"
+            ls -la /var/www/aexpo-auth/
+            
+            echo "Checking main entry point..."
+            if [ -f "/var/www/aexpo-auth/dist/main.js" ]; then
+              echo "✅ Main entry point found"
+            else
+              echo "❌ Main entry point NOT found!"
+              exit 1
+            fi
+            
+            echo "Setting permissions..."
+            sudo chown -R $USER:$USER /var/www/aexpo-auth
+            
+            echo "Checking Node.js and PM2..."
+            node --version || { echo "Node.js not installed!"; exit 1; }
+            npm --version || { echo "npm not installed!"; exit 1; }
+            
+            echo "Installing/updating PM2..."
+            command -v pm2 || sudo npm install -g pm2
+            
+            echo "Creating logs directory..."
+            mkdir -p /var/www/aexpo-auth/logs
+            
+            echo "Loading environment variables..."
+            if [ -f "/var/www/aexpo-auth/.env" ]; then
+              echo "✅ .env file exists"
+              export $(cat /var/www/aexpo-auth/.env | grep -v '^#' | xargs)
+            else
+              echo "⚠️ WARNING: No .env file found! App may fail to start."
+              echo "Please create /var/www/aexpo-auth/.env with:"
+              echo "  - DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME"
+              echo "  - JWT_SECRET"
+              echo "  - PORT (optional, default: 3000)"
+            fi
+            
+            echo "Stopping old process..."
+            pm2 stop aexpo-auth || true
+            pm2 delete aexpo-auth || true
+            
+            echo "Starting application with PM2..."
+            cd /var/www/aexpo-auth
+            pm2 start ecosystem.config.js
+            pm2 save
+            
+            echo "Setting up PM2 startup script..."
+            sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u $USER --hp $HOME || true
+            
+            echo "Waiting for app to start..."
+            sleep 5
+            
+            echo "PM2 status:"
+            pm2 list
+            
+            echo "Checking if app is running on port 3000..."
+            if curl -f http://127.0.0.1:3000 > /dev/null 2>&1; then
+              echo "✅ App is responding on port 3000"
+            else
+              echo "❌ App is NOT responding on port 3000"
+              echo "Recent logs:"
+              pm2 logs aexpo-auth --lines 100 --nostream || cat /var/www/aexpo-auth/logs/error.log
+              exit 1
+            fi
+            
+            echo "Last 50 lines of logs:"
+            pm2 logs aexpo-auth --lines 50 --nostream
+            
+            echo "✅ Deployment completed!"

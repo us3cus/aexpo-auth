@@ -121,10 +121,54 @@ npm run format        # Prettier
 4. **Avatar migration:** Old avatars in `public/avatars/` folder are orphaned (see `AVATAR_MIGRATION.md`)
 5. **CORS:** Enabled globally with `app.enableCors()` - configure origins for production
 
+## Documentation Structure
+
+All project documentation is stored in the `documentation/` folder. **Always read relevant documentation before working on related tasks.**
+
+### Documentation Files & When to Read Them
+
+| File | Read When Working On | Contains |
+|------|---------------------|----------|
+| `documentation/API.md` | API endpoints, testing, curl examples | Complete API reference with request/response examples |
+| `documentation/CI_CD_SETUP.md` | Deployment, CI/CD, GitHub Actions | Overview of CI/CD setup and quick start guide |
+| `documentation/DEPLOYMENT.md` | VPS setup, production deployment, troubleshooting | Complete deployment guide with VPS setup, PM2, PostgreSQL |
+| `documentation/DEPLOYMENT_CHECKLIST.md` | Quick deployment reference | Step-by-step checklist for deployment |
+| `documentation/ENV_VARIABLES.md` | Environment variables, configuration | All environment variables with descriptions and examples |
+| `documentation/NGINX_SETUP.md` | Nginx, reverse proxy, SSL/HTTPS | Nginx configuration and Let's Encrypt SSL setup |
+| `documentation/SECURITY_FIXES.md` | Security, vulnerabilities, best practices | Security patches and recommendations |
+| `documentation/README.md` | Documentation index | Complete documentation structure and guidelines |
+
+### Auto-Read Rules
+
+**Before making changes, read:**
+- **Deployment/CI/CD tasks** → `documentation/DEPLOYMENT.md`, `documentation/CI_CD_SETUP.md`
+- **API modifications** → `documentation/API.md`
+- **Environment setup** → `documentation/ENV_VARIABLES.md`
+- **Security updates** → `documentation/SECURITY_FIXES.md`
+- **Nginx/proxy changes** → `documentation/NGINX_SETUP.md`
+- **Documentation questions** → `documentation/README.md`
+
+**When creating new documentation:**
+- ✅ Place all `.md` files (except root `README.md`) in `documentation/` folder
+- ✅ Update the table above with new documentation
+- ✅ Update `documentation/README.md` with new file info
+- ✅ Use clear, descriptive filenames in UPPERCASE with underscores (e.g., `MY_FEATURE.md`)
+- ✅ Use relative links within documentation: `./OTHER_DOC.md` for same folder, `../file.ext` for root
+
+**Link structure examples:**
+```markdown
+# Inside documentation/ files
+[Other doc](./API.md)           # Same folder
+[Root file](../manage.sh)       # Root of project
+
+# Inside root README.md
+[Documentation](./documentation/DEPLOYMENT.md)
+```
+
 ## File References
 
-- API docs: `API.md` (curl examples for all endpoints)
-- Avatar migration notes: `AVATAR_MIGRATION.md`, `CHANGES.md`
 - Auth config: `src/auth/auth.module.ts` (JWT registration)
 - Main app config: `src/app.module.ts` (TypeORM + global ConfigModule)
 - Bootstrap: `src/main.ts` (global pipes, CORS, API prefix)
+- PM2 config: `ecosystem.config.js` (production process management)
+- Management script: `manage.sh` (VPS management utilities)
