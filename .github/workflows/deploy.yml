@@ -108,7 +108,7 @@ jobs:
               echo "Please create /var/www/aexpo-auth/.env with:"
               echo "  - DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME"
               echo "  - JWT_SECRET"
-              echo "  - PORT (optional, default: 3000)"
+              echo "  - PORT (optional, default: 5000)"
             fi
             
             echo "Stopping old process..."
@@ -129,11 +129,11 @@ jobs:
             echo "PM2 status:"
             pm2 list
             
-            echo "Checking if app is running on port 3000..."
-            if curl -f http://127.0.0.1:3000 > /dev/null 2>&1; then
-              echo "✅ App is responding on port 3000"
+            echo "Checking if app is running on port 5000..."
+            if curl -f http://127.0.0.1:5000 > /dev/null 2>&1; then
+              echo "✅ App is responding on port 5000"
             else
-              echo "❌ App is NOT responding on port 3000"
+              echo "❌ App is NOT responding on port 5000"
               echo "Recent logs:"
               pm2 logs aexpo-auth --lines 100 --nostream || cat /var/www/aexpo-auth/logs/error.log
               exit 1

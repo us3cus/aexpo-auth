@@ -126,14 +126,14 @@ check_health() {
     fi
     
     # Check if port is listening
-    if netstat -tulpn 2>/dev/null | grep -q ":3000"; then
-        echo -e "Port 3000: ${GREEN}✓ Listening${NC}"
+    if netstat -tulpn 2>/dev/null | grep -q ":5000"; then
+        echo -e "Port 5000: ${GREEN}✓ Listening${NC}"
     else
-        echo -e "Port 3000: ${RED}✗ Not listening${NC}"
+        echo -e "Port 5000: ${RED}✗ Not listening${NC}"
     fi
     
     # Check HTTP response
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000 2>/dev/null)
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:5000 2>/dev/null)
     if [ "$HTTP_CODE" == "200" ] || [ "$HTTP_CODE" == "404" ]; then
         echo -e "HTTP Response: ${GREEN}✓ Responding (${HTTP_CODE})${NC}"
     else

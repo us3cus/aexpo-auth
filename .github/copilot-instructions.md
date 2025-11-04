@@ -50,7 +50,7 @@ JWT_SECRET (required - app throws error if missing)
 JWT_EXPIRES_IN (optional - no expiration if omitted)
 
 # Server
-PORT (default: 3000)
+PORT (default: 5000)
 BASE_URL (default: http://localhost:5001) - for avatar URLs
 ```
 
@@ -136,6 +136,7 @@ All project documentation is stored in the `documentation/` folder. **Always rea
 | `documentation/ENV_VARIABLES.md` | Environment variables, configuration | All environment variables with descriptions and examples |
 | `documentation/NGINX_SETUP.md` | Nginx, reverse proxy, SSL/HTTPS | Nginx configuration and Let's Encrypt SSL setup |
 | `documentation/SECURITY_FIXES.md` | Security, vulnerabilities, best practices | Security patches and recommendations |
+| `documentation/DEPENDENCIES_AUDIT.md` | Dependencies, npm warnings, updates | Dependency analysis and update recommendations |
 | `documentation/README.md` | Documentation index | Complete documentation structure and guidelines |
 
 ### Auto-Read Rules
@@ -146,6 +147,7 @@ All project documentation is stored in the `documentation/` folder. **Always rea
 - **Environment setup** → `documentation/ENV_VARIABLES.md`
 - **Security updates** → `documentation/SECURITY_FIXES.md`
 - **Nginx/proxy changes** → `documentation/NGINX_SETUP.md`
+- **Dependencies/npm updates** → `documentation/DEPENDENCIES_AUDIT.md`
 - **Documentation questions** → `documentation/README.md`
 
 **When creating new documentation:**

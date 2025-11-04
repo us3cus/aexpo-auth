@@ -85,7 +85,7 @@ DB_NAME=aexpo_auth
 JWT_SECRET=RANDOM_32_CHARS_OR_MORE
 JWT_EXPIRES_IN=7d
 
-PORT=3000
+PORT=5000
 BASE_URL=http://your-domain.com
 NODE_ENV=production
 ```
@@ -186,7 +186,7 @@ sudo certbot --nginx -d your-domain.com
 # На VPS
 pm2 status
 pm2 logs aexpo-auth
-curl http://127.0.0.1:3000
+curl http://127.0.0.1:5000
 
 # Или через скрипт
 ./manage.sh
@@ -210,7 +210,7 @@ psql -h localhost -U aexpo_user -d aexpo_auth
 ### 502 Bad Gateway (через Nginx)
 ```bash
 pm2 status
-sudo netstat -tulpn | grep 3000
+sudo netstat -tulpn | grep 5000
 sudo tail -f /var/log/nginx/aexpo-auth_error.log
 ```
 

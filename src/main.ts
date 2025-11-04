@@ -26,7 +26,7 @@ async function bootstrap() {
   // Устанавливаем глобальный префикс для API
   app.setGlobalPrefix('api/v1');
 
-  const port = configService.get<number>('PORT') || 3000;
+  const port = configService.get<number>('PORT') || 5000;
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
 }

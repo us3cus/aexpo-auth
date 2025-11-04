@@ -96,7 +96,7 @@ Go to **Actions** → **Deploy to VPS (NestJS)** → **Run workflow**
 - ✅ Packages `dist` + `node_modules`
 - ✅ Deploys to `/var/www/aexpo-auth` on VPS
 - ✅ Restarts via PM2
-- ✅ Health check on port 3000
+- ✅ Health check on port 5000
 
 ### Management on VPS
 
