@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   S3Client,
@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class S3Service {
+  private readonly logger = new Logger(S3Service.name);
   private s3Client: S3Client;
   private bucket: string;
   private publicUrl: string;
@@ -48,9 +49,8 @@ export class S3Service {
     const fileExtension = this.getExtensionFromMimeType(mimeType);
     const fileName = `${folder}/${uuidv4()}${fileExtension}`;
 
-    console.log(`Uploading file: ${fileName}`);
-    console.log(`MIME Type: ${mimeType}`);
-    console.log(`File size: ${file.length} bytes`);
+    this.logger.log(`Uploading file: ${fileName}`);
+    this.logger.debug(`MIME Type: ${mimeType}, File size: ${file.length} bytes`);
 
     const command = new PutObjectCommand({
       Bucket: this.bucket,
@@ -62,25 +62,25 @@ export class S3Service {
     try {
       const result = await this.s3Client.send(command);
       const fileUrl = `${this.publicUrl}/${this.bucket}/${fileName}`;
-      console.log(`File uploaded successfully: ${fileUrl}`);
-      console.log('S3 Response ETag:', result.ETag);
+      this.logger.log(`File uploaded successfully: ${fileUrl}`);
+      this.logger.debug(`S3 Response ETag: ${result.ETag}`);
       return fileUrl;
     } catch (error) {
-      console.error('Error uploading file to S3:', error);
+      this.logger.error(`Error uploading file to S3: ${error.message}`, error.stack);
       throw error;
     }
   }
 
   async deleteFile(fileUrl: string): Promise<void> {
     try {
-      // Извлекаем ключ файла из URL
+      // Extract file key from URL
       // URL format: https://cdn.temten.me/aexpo/avatars/uuid.webp
-      // Нужно получить: avatars/uuid.webp
+      // Need to get: avatars/uuid.webp
       const urlParts = fileUrl.split('/');
       const bucketIndex = urlParts.indexOf(this.bucket);
       
       if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
-        // Берем все части после bucket name
+        // Get all parts after bucket name
         const fileName = urlParts.slice(bucketIndex + 1).join('/');
         
         const command = new DeleteObjectCommand({
@@ -89,13 +89,13 @@ export class S3Service {
         });
 
         await this.s3Client.send(command);
-        console.log(`File deleted successfully: ${fileName}`);
+        this.logger.log(`File deleted successfully: ${fileName}`);
       } else {
-        console.warn(`Invalid S3 URL format: ${fileUrl}`);
+        this.logger.warn(`Invalid S3 URL format: ${fileUrl}`);
       }
     } catch (error) {
-      console.error('Error deleting file from S3:', error);
-      // Не выбрасываем ошибку, чтобы не блокировать удаление записи из БД
+      this.logger.error(`Error deleting file from S3: ${error.message}`, error.stack);
+      // Don't throw error to avoid blocking DB record deletion
     }
   }
 

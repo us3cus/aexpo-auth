@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -15,14 +15,19 @@ import { User } from './entities/user.entity';
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
+      useFactory: (configService: ConfigService) => {
         const secret = configService.get<string>('JWT_SECRET');
         const expiresIn = configService.get<string>('JWT_EXPIRES_IN');
 
+        // TypeScript has strict typing for SignOptions.expiresIn, using type assertion
         return {
           secret,
-          signOptions: expiresIn ? { expiresIn } : {}, // No expiration if not set
-        };
+          ...(expiresIn && {
+            signOptions: {
+              expiresIn,
+            },
+          }),
+        } as JwtModuleOptions;
       },
       inject: [ConfigService],
     }),

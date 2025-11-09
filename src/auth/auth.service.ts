@@ -42,25 +42,17 @@ export class AuthService {
       lastName: registerDto.lastName,
     });
 
-    await this.usersRepository.save(user);
+    const savedUser = await this.usersRepository.save(user);
 
-    // Return user without password and avatarData
-    return {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      avatarUrl: null,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    // Password is automatically excluded by @Exclude() decorator + ClassSerializerInterceptor
+    return savedUser;
   }
 
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.usersRepository.findOne({ where: { email } });
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      // Return user without password and avatarData
+      // Return minimal user data for JWT payload
       return {
         id: user.id,
         email: user.email,
@@ -93,23 +85,28 @@ export class AuthService {
       throw new NotFoundException('Пользователь не найден');
     }
 
-    // Verify current password
-    const isPasswordValid = await bcrypt.compare(
-      updateProfileDto.currentPassword,
-      user.password,
-    );
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Неверный текущий пароль');
-    }
-
     let passwordChanged = false;
 
+    // If changing password, verify current password
     if (updateProfileDto.password) {
+      if (!updateProfileDto.currentPassword) {
+        throw new UnauthorizedException('Текущий пароль обязателен для смены пароля');
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        updateProfileDto.currentPassword,
+        user.password,
+      );
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Неверный текущий пароль');
+      }
+
       const hashedPassword = await bcrypt.hash(updateProfileDto.password, 10);
       user.password = hashedPassword;
       passwordChanged = true;
     }
 
+    // Update other fields
     if (updateProfileDto.firstName) {
       user.firstName = updateProfileDto.firstName;
     }
@@ -125,28 +122,23 @@ export class AuthService {
 
     const updatedUser = await this.usersRepository.save(user);
 
-    const response: any = {
-      id: updatedUser.id,
-      email: updatedUser.email,
-      firstName: updatedUser.firstName,
-      lastName: updatedUser.lastName,
-      avatarUrl: updatedUser.avatarUrl,
-      createdAt: updatedUser.createdAt,
-      updatedAt: updatedUser.updatedAt,
-    };
-
-    // If password changed, return new access token
+    // If password changed, add new access token to response
     if (passwordChanged) {
       const payload = {
         email: updatedUser.email,
         sub: updatedUser.id,
         jwtVersion: updatedUser.jwtVersion,
       };
-      response.access_token = this.jwtService.sign(payload);
-      response.message = 'Пароль изменен. Все активные сессии завершены.';
+      
+      return {
+        ...updatedUser,
+        access_token: this.jwtService.sign(payload),
+        message: 'Пароль изменен. Все активные сессии завершены.',
+      };
     }
 
-    return response;
+    // Password is automatically excluded by @Exclude() decorator
+    return updatedUser;
   }
 
   async updateAvatarUrl(userId: number, avatarUrl: string) {

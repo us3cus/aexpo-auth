@@ -61,14 +61,27 @@ export class PostsService {
       .toBuffer();
   }
 
-  async findAll(): Promise<Post[]> {
-    const posts = await this.postsRepository.find({
+  async findAll(page: number = 1, limit: number = 20): Promise<{ 
+    posts: Post[]; 
+    total: number; 
+    page: number; 
+    totalPages: number;
+  }> {
+    const skip = (page - 1) * limit;
+
+    const [posts, total] = await this.postsRepository.findAndCount({
       relations: ['user'],
       order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
     });
     
-    // Удаляем пароль из каждого поста
-    return posts.map(post => this.sanitizePost(post));
+    return {
+      posts: posts.map(post => this.sanitizePost(post)),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number): Promise<Post | null> {
@@ -93,7 +106,7 @@ export class PostsService {
 
   private sanitizePost(post: Post): Post {
     if (post.user) {
-      const { password, ...userWithoutPassword } = post.user as any;
+      const { password: _password, ...userWithoutPassword } = post.user as any;
       post.user = userWithoutPassword as any;
     }
     return post;

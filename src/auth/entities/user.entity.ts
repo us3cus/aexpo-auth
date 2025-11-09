@@ -25,6 +25,7 @@ export class User {
   @Column()
   lastName: string;
 
+  // Avatar stored in S3, only URL is saved in database
   @Column({ nullable: true })
   avatarUrl?: string;
 

@@ -10,6 +10,6 @@ export const uploadConfig: MulterOptions = {
     callback(null, true);
   },
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB (before compression)
+    fileSize: 5 * 1024 * 1024, // 5MB (before compression)
   },
 };

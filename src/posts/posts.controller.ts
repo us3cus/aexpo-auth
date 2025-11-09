@@ -12,6 +12,7 @@ import {
   Patch,
   Delete,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PostsService } from './posts.service';
@@ -67,8 +68,14 @@ export class PostsController {
   }
 
   @Get()
-  async findAll() {
-    return await this.postsService.findAll();
+  async findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? Math.min(parseInt(limit, 10), 50) : 20; // Max 50 per page
+    
+    return await this.postsService.findAll(pageNum, limitNum);
   }
 
   @Get('user/:userId')
