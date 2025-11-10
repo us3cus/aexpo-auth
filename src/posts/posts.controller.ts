@@ -21,6 +21,13 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { memoryStorage } from 'multer';
 
+interface RequestWithUser extends Request {
+  user: {
+    id: number;
+    email: string;
+  };
+}
+
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
@@ -61,20 +68,17 @@ export class PostsController {
   async create(
     @Body() createPostDto: CreatePostDto,
     @UploadedFile() file: Express.Multer.File,
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
     const userId = req.user.id;
     return await this.postsService.create(createPostDto, userId, file);
   }
 
   @Get()
-  async findAll(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
+  async findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? Math.min(parseInt(limit, 10), 50) : 20; // Max 50 per page
-    
+
     return await this.postsService.findAll(pageNum, limitNum);
   }
 
@@ -129,7 +133,7 @@ export class PostsController {
     @Param('id') id: string,
     @Body() updatePostDto: UpdatePostDto,
     @UploadedFile() file: Express.Multer.File,
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
     const userId = req.user.id;
     return await this.postsService.update(+id, updatePostDto, userId, file);
@@ -137,10 +141,9 @@ export class PostsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async remove(@Param('id') id: string, @Req() req) {
+  async remove(@Param('id') id: string, @Req() req: RequestWithUser) {
     const userId = req.user.id;
     await this.postsService.remove(+id, userId);
     return { message: 'Пост успешно удален' };
   }
 }
-

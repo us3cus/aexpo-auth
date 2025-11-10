@@ -22,7 +22,13 @@ export class S3Service {
     const bucket = this.configService.get<string>('S3_BUCKET');
     const publicUrl = this.configService.get<string>('S3_PUBLIC_URL');
 
-    if (!endpoint || !accessKeyId || !secretAccessKey || !bucket || !publicUrl) {
+    if (
+      !endpoint ||
+      !accessKeyId ||
+      !secretAccessKey ||
+      !bucket ||
+      !publicUrl
+    ) {
       throw new Error(
         'S3 configuration is incomplete. Please check your .env file for S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET, and S3_PUBLIC_URL',
       );
@@ -50,7 +56,9 @@ export class S3Service {
     const fileName = `${folder}/${uuidv4()}${fileExtension}`;
 
     this.logger.log(`Uploading file: ${fileName}`);
-    this.logger.debug(`MIME Type: ${mimeType}, File size: ${file.length} bytes`);
+    this.logger.debug(
+      `MIME Type: ${mimeType}, File size: ${file.length} bytes`,
+    );
 
     const command = new PutObjectCommand({
       Bucket: this.bucket,
@@ -66,7 +74,13 @@ export class S3Service {
       this.logger.debug(`S3 Response ETag: ${result.ETag}`);
       return fileUrl;
     } catch (error) {
-      this.logger.error(`Error uploading file to S3: ${error.message}`, error.stack);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Error uploading file to S3: ${errorMessage}`,
+        errorStack,
+      );
       throw error;
     }
   }
@@ -78,11 +92,11 @@ export class S3Service {
       // Need to get: avatars/uuid.webp
       const urlParts = fileUrl.split('/');
       const bucketIndex = urlParts.indexOf(this.bucket);
-      
+
       if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
         // Get all parts after bucket name
         const fileName = urlParts.slice(bucketIndex + 1).join('/');
-        
+
         const command = new DeleteObjectCommand({
           Bucket: this.bucket,
           Key: fileName,
@@ -94,7 +108,13 @@ export class S3Service {
         this.logger.warn(`Invalid S3 URL format: ${fileUrl}`);
       }
     } catch (error) {
-      this.logger.error(`Error deleting file from S3: ${error.message}`, error.stack);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Error deleting file from S3: ${errorMessage}`,
+        errorStack,
+      );
       // Don't throw error to avoid blocking DB record deletion
     }
   }

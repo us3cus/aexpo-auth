@@ -215,6 +215,7 @@ All project documentation is stored in the `documentation/` folder. **Always rea
 | File | Read When Working On | Contains |
 |------|---------------------|----------|
 | `documentation/API.md` | API endpoints, testing, curl examples | Complete API reference with request/response examples |
+| `documentation/E2E_TESTING.md` | E2E tests, Jest, testing, CI/CD | Complete e2e testing guide with examples and best practices |
 | `documentation/CI_CD_SETUP.md` | Deployment, CI/CD, GitHub Actions | Overview of CI/CD setup and quick start guide |
 | `documentation/DEPLOYMENT.md` | VPS setup, production deployment, troubleshooting | Complete deployment guide with VPS setup, PM2, PostgreSQL |
 | `documentation/DEPLOYMENT_CHECKLIST.md` | Quick deployment reference | Step-by-step checklist for deployment |
@@ -229,6 +230,7 @@ All project documentation is stored in the `documentation/` folder. **Always rea
 **Before making changes, read:**
 - **Deployment/CI/CD tasks** → `documentation/DEPLOYMENT.md`, `documentation/CI_CD_SETUP.md`
 - **API modifications** → `documentation/API.md`
+- **Testing/E2E tests** → `documentation/E2E_TESTING.md`
 - **Environment setup** → `documentation/ENV_VARIABLES.md`
 - **Security updates** → `documentation/SECURITY_FIXES.md`
 - **Nginx/proxy changes** → `documentation/NGINX_SETUP.md`

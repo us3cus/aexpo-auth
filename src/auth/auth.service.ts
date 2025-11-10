@@ -48,7 +48,15 @@ export class AuthService {
     return savedUser;
   }
 
-  async validateUser(email: string, password: string): Promise<any> {
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<{
+    id: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+  } | null> {
     const user = await this.usersRepository.findOne({ where: { email } });
 
     if (user && (await bcrypt.compare(password, user.password))) {
@@ -63,7 +71,7 @@ export class AuthService {
     return null;
   }
 
-  async login(user: any) {
+  async login(user: { id: number; email: string }) {
     const fullUser = await this.usersRepository.findOne({
       where: { id: user.id },
       select: ['id', 'email', 'jwtVersion'],
@@ -90,7 +98,9 @@ export class AuthService {
     // If changing password, verify current password
     if (updateProfileDto.password) {
       if (!updateProfileDto.currentPassword) {
-        throw new UnauthorizedException('Текущий пароль обязателен для смены пароля');
+        throw new UnauthorizedException(
+          'Текущий пароль обязателен для смены пароля',
+        );
       }
 
       const isPasswordValid = await bcrypt.compare(
@@ -129,7 +139,7 @@ export class AuthService {
         sub: updatedUser.id,
         jwtVersion: updatedUser.jwtVersion,
       };
-      
+
       return {
         ...updatedUser,
         access_token: this.jwtService.sign(payload),

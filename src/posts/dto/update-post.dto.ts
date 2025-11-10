@@ -1,4 +1,10 @@
-import { IsString, IsEnum, IsOptional, IsArray, MinLength } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsArray,
+  MinLength,
+} from 'class-validator';
 import { PostPrivacy } from '../entities/post.entity';
 
 export class UpdatePostDto {

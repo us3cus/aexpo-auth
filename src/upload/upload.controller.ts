@@ -18,6 +18,13 @@ import { AuthService } from '../auth/auth.service';
 import { UsersService } from '../users/users.service';
 import { FileValidationService } from '../common/file-validation.service';
 
+interface RequestWithUser extends Request {
+  user: {
+    id: number;
+    email: string;
+  };
+}
+
 @Controller('upload')
 export class UploadController {
   constructor(
@@ -30,7 +37,10 @@ export class UploadController {
   @Post('avatar')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file', uploadConfig))
-  async uploadAvatar(@UploadedFile() file: Express.Multer.File, @Req() req) {
+  async uploadAvatar(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: RequestWithUser,
+  ) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
@@ -46,7 +56,7 @@ export class UploadController {
 
     // Upload to S3 and store URL in database
     await this.authService.updateAvatar(
-      req.user.id as number,
+      req.user.id,
       compressedImage,
       'image/webp',
     );
@@ -65,7 +75,7 @@ export class UploadController {
   @Get('avatar/:userId')
   async getAvatarUrl(@Param('userId') userId: string) {
     const user = await this.usersService.findById(parseInt(userId));
-    
+
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
     }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post, PostPrivacy } from './entities/post.entity';
@@ -48,7 +52,7 @@ export class PostsService {
     }
 
     const savedPost = await this.postsRepository.save(post);
-    
+
     // Загружаем пост с пользователем и удаляем пароль
     const postWithUser = await this.findOne(savedPost.id);
     return postWithUser!;
@@ -61,10 +65,13 @@ export class PostsService {
       .toBuffer();
   }
 
-  async findAll(page: number = 1, limit: number = 20): Promise<{ 
-    posts: Post[]; 
-    total: number; 
-    page: number; 
+  async findAll(
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{
+    posts: Post[];
+    total: number;
+    page: number;
     totalPages: number;
   }> {
     const skip = (page - 1) * limit;
@@ -75,9 +82,9 @@ export class PostsService {
       skip,
       take: limit,
     });
-    
+
     return {
-      posts: posts.map(post => this.sanitizePost(post)),
+      posts: posts.map((post) => this.sanitizePost(post)),
       total,
       page,
       totalPages: Math.ceil(total / limit),
@@ -89,7 +96,7 @@ export class PostsService {
       where: { id },
       relations: ['user'],
     });
-    
+
     return post ? this.sanitizePost(post) : null;
   }
 
@@ -99,15 +106,20 @@ export class PostsService {
       relations: ['user'],
       order: { createdAt: 'DESC' },
     });
-    
+
     // Удаляем пароль из каждого поста
-    return posts.map(post => this.sanitizePost(post));
+    return posts.map((post) => this.sanitizePost(post));
   }
 
   private sanitizePost(post: Post): Post {
     if (post.user) {
-      const { password: _password, ...userWithoutPassword } = post.user as any;
-      post.user = userWithoutPassword as any;
+      // Remove password field from user object
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...userWithoutPassword } = post.user as unknown as {
+        password?: string;
+        [key: string]: unknown;
+      };
+      post.user = userWithoutPassword as unknown as typeof post.user;
     }
     return post;
   }
@@ -119,13 +131,15 @@ export class PostsService {
     file?: Express.Multer.File,
   ): Promise<Post> {
     const post = await this.findOne(id);
-    
+
     if (!post) {
       throw new NotFoundException('Пост не найден');
     }
 
     if (post.userId !== userId) {
-      throw new ForbiddenException('У вас нет прав на редактирование этого поста');
+      throw new ForbiddenException(
+        'У вас нет прав на редактирование этого поста',
+      );
     }
 
     // Обновляем поля
@@ -165,7 +179,7 @@ export class PostsService {
     }
 
     const savedPost = await this.postsRepository.save(post);
-    
+
     // Загружаем пост с пользователем и удаляем пароль
     const postWithUser = await this.findOne(savedPost.id);
     return postWithUser!;
@@ -173,7 +187,7 @@ export class PostsService {
 
   async remove(id: number, userId: number): Promise<void> {
     const post = await this.findOne(id);
-    
+
     if (!post) {
       throw new NotFoundException('Пост не найден');
     }
@@ -190,4 +204,3 @@ export class PostsService {
     await this.postsRepository.remove(post);
   }
 }
-

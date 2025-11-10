@@ -1,13 +1,8 @@
-import {
-  IsString,
-  IsOptional,
-  MinLength,
-  ValidateIf,
-} from 'class-validator';
+import { IsString, IsOptional, MinLength, ValidateIf } from 'class-validator';
 
 export class UpdateProfileDto {
   // Current password is required only when changing password
-  @ValidateIf((o) => o.password !== undefined)
+  @ValidateIf((o: UpdateProfileDto) => o.password !== undefined)
   @IsString({ message: 'Текущий пароль обязателен при смене пароля' })
   currentPassword?: string;
 

@@ -25,7 +25,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: {
+    sub: number;
+    email: string;
+    jwtVersion?: number;
+  }): Promise<{ id: number; email: string }> {
     // Validate JWT version to ensure token hasn't been invalidated
     const user = await this.usersRepository.findOne({
       where: { id: payload.sub },
@@ -36,8 +40,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Пользователь не найден');
     }
 
-    const tokenVersion = payload.jwtVersion || 0;
-    const currentVersion = user.jwtVersion || 0;
+    const tokenVersion = payload.jwtVersion ?? 0;
+    const currentVersion = user.jwtVersion ?? 0;
 
     if (tokenVersion !== currentVersion) {
       throw new UnauthorizedException(

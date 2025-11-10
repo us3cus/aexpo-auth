@@ -7,6 +7,7 @@
 | Файл | Назначение | Читать при работе с |
 |------|-----------|---------------------|
 | **[API.md](./API.md)** | Полная документация API с примерами curl | API endpoints, тестирование |
+| **[E2E_TESTING.md](./E2E_TESTING.md)** | Документация по e2e тестированию | Тесты, Jest, Supertest, CI/CD |
 | **[CI_CD_SETUP.md](./CI_CD_SETUP.md)** | Обзор CI/CD и быстрый старт | Деплой, GitHub Actions, общая настройка |
 | **[DEPLOYMENT.md](./DEPLOYMENT.md)** | Детальное руководство по деплою | VPS setup, production, troubleshooting |
 | **[DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)** | Быстрый чеклист для деплоя | Быстрая справка по шагам |
@@ -27,6 +28,9 @@
 
 ### Для работы с API
 - **[API.md](./API.md)**
+
+### Для тестирования
+- **[E2E_TESTING.md](./E2E_TESTING.md)**
 
 ### Для настройки окружения
 - **[ENV_VARIABLES.md](./ENV_VARIABLES.md)**
@@ -58,6 +62,7 @@
 GitHub Copilot автоматически читает релевантную документацию при работе с:
 - **Деплоем** → `DEPLOYMENT.md`, `CI_CD_SETUP.md`
 - **API** → `API.md`
+- **Тестированием** → `E2E_TESTING.md`
 - **Безопасностью** → `SECURITY_FIXES.md`
 - **Nginx** → `NGINX_SETUP.md`
 - **Конфигурацией** → `ENV_VARIABLES.md`
